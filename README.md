@@ -14,20 +14,19 @@ The paper develops a theory of superconductivity mediated by interlayer ferroele
 
 ## Description
 
-`check_splitting.m` numerically solves the **linearized Eliashberg equation in the ordered ferroelectric (FE) phase**, implementing **Eq. (B23)** of the paper.
+`check_splitting.m` numerically solves the **linearized Eliashberg equation in the ordered ferroelectric (FE) phase**, implementing **Eq. (B23)** (Appendix B) of the paper.
 
-The script computes the layer-resolved superconducting transition temperatures  
-\( T_{c,t} \) and \( T_{c,b} \), and extracts the FE-induced splitting
+The script computes the **layer-resolved superconducting transition temperatures** $T_{c,t}$ and $T_{c,b}$, and extracts the FE-induced splitting
 
-\[
+$$
 \Delta T_c = T_{c,t} - T_{c,b}.
-\]
+$$
 
-It reproduces the ordered-phase results shown in Figure 3 and verifies the quadratic scaling
+It reproduces the ordered-phase results shown in **Figure 3** and verifies the quadratic scaling
 
-\[
-\Delta T_c / T_c \sim r^2
-\]
+$$
+\frac{\Delta T_c}{T_c} \sim r^2
+$$
 
 near the FE quantum critical point.
 
@@ -35,14 +34,14 @@ near the FE quantum critical point.
 
 ## Theory Implemented
 
-The script implements the ordered-state linearized gap equation:
+The script implements the ordered-state linearized gap equation (Eq. B23):
 
-\[
+$$
 \Delta_l(k_0) =
 \frac{\lambda \nu_F}{k_{F,l} a}
 T \sum_{p_0 \neq k_0}
 \frac{
-[d(p_0-k_0) + d(p_0+k_0)]
+d(p_0-k_0) + d(p_0+k_0)
 }{
 p_0
 }
@@ -51,108 +50,98 @@ p_0
 1 + \frac{\lambda \nu_F}{k_{F,l} a}
 \frac{1}{k_0}
 \sum_{p_0' \neq k_0}
-[d(p_0'-k_0) - d(p_0'+k_0)]
+\left[d(p_0'-k_0) - d(p_0'+k_0)\right]
 }
-\]
+$$
 
 where:
 
-- \( l = t, b \) labels the layers
-- \( d(q_0) \) is the momentum-integrated bosonic propagator
-- The ordered phase enters via:
-  - \( \mu_l = \mu \pm \delta\mu \)
-  - \( r \rightarrow 2|r| \) in the bosonic propagator
-  - Layer-dependent \( k_{F,l}, v_{F,l} \)
+- $l \in \{t,b\}$ labels the two layers (top/bottom)
+- $k_0, p_0$ are fermionic Matsubara frequencies
+- $\nu_F$ is the density of states at the Fermi level
+- $k_{F,l}$ is the layer-dependent Fermi momentum (shifted in the FE state)
+- $a$ is the microscopic length scale used in the bosonic sector
+- $\lambda$ is the effective electron–boson coupling
+- $d(q_0)$ is the **momentum-integrated bosonic propagator** (kernel)
 
-The zero-frequency divergence is removed using the standard transformation:
+The ordered FE phase enters through:
 
-\[
-\Delta_l(k_0) = \frac{k_0 \Phi_l(k_0)}{\tilde{\Sigma}_l(k_0)}.
-\]
+1. **Layer chemical potential splitting**
+   $$
+   \mu_l = \mu \pm \delta\mu,
+   $$
+   which induces layer-dependent $k_{F,l}$ (and $v_{F,l}$).
 
----
-
-## Numerical Procedure
-
-1. **Discretize Matsubara frequencies**
-   \[
-   k_0 = (2n+1)\pi T
-   \]
-
-2. **Construct bosonic kernel**
-   \[
-   d(q_0) = \int_0^\Lambda
-   \frac{dq}{
-   2|r| + q^2 a^2 +
-   \frac{4\lambda \nu_F |q_0|}{v_{\mathrm{eff}} q}
-   }
-   \]
-
-3. **Compute layer-dependent self-energy**
-   \[
-   \Sigma_l(k_0)
-   \]
-
-4. **Assemble pairing matrix** from Eq. (B23)
-
-5. **Solve eigenvalue problem**
-   - Largest eigenvalue \( \lambda_{\max}(T) \)
-   - Identify \( T_c \) from condition:
-     \[
-     \lambda_{\max}(T_c) = 1
-     \]
-
-6. Repeat separately for \( l = t, b \)
+2. **Ordered-phase boson mass replacement**
+   $$
+   r \rightarrow 2|r|
+   $$
+   in the bosonic propagator.
 
 ---
 
-## Physical Content
+## Bosonic Kernel
 
-- FE order generates a layer chemical potential shift
-  \[
-  \delta\mu = \lambda u_0
-  \]
-- This induces small differences in:
-  - \( k_{F,l} \)
-  - \( v_{F,l} \)
-  - pairing kernel prefactor
-- The resulting Tc splitting is parametrically small:
-  \[
-  \Delta T_c \propto r^2
-  \]
-  consistent with Appendix C.
+The pairing interaction is controlled by the frequency-dependent kernel $d(q_0)$ obtained by integrating out momentum in the bosonic propagator. Schematically,
 
-The script numerically confirms this scaling.
+$$
+d(q_0)=\int_0^\Lambda dq \; D(q,q_0),
+$$
+
+where $D(q,q_0)$ contains the FE mass term and Landau damping (see Appendix B for the precise form used in the paper). This kernel enters Eq. (B23) through the combinations
+$d(p_0-k_0)\pm d(p_0+k_0)$.
+
+---
+
+## Regularization / Gap Transformation
+
+To remove the apparent divergence associated with the static ($q_0=0$) contribution, the code uses the standard transformation (Appendix B):
+
+$$
+\Delta_l(k_0) = \frac{k_0 \, \Phi_l(k_0)}{\tilde{\Sigma}_l(k_0)} ,
+$$
+
+where $\Phi_l$ is the pairing vertex and $\tilde{\Sigma}_l$ is the (renormalized) normal self-energy factor entering the linearized equation.
+
+---
+
+## Numerical Method
+
+At a given control parameter $r$ (distance to the FE QCP), the script:
+
+1. Sets up a Matsubara grid:
+   $$
+   k_0=(2n+1)\pi T
+   $$
+   with UV cutoff of order $E_F$ (see code parameters).
+
+2. Builds the kernel $d(q_0)$ on the Matsubara grid.
+
+3. Constructs the linearized pairing operator from Eq. (B23) separately for $l=t$ and $l=b$.
+
+4. Solves the resulting eigenvalue problem. The transition temperature is determined by the condition:
+   $$
+   \lambda_{\max}(T_c)=1,
+   $$
+   where $\lambda_{\max}$ is the largest eigenvalue of the linearized gap kernel.
+
+5. Extracts $T_{c,t}$ and $T_{c,b}$ and then computes $\Delta T_c$.
 
 ---
 
 ## Outputs
 
-- \( T_{c,t}(r) \)
-- \( T_{c,b}(r) \)
-- \( \Delta T_c(r) \)
-- Ordered vs disordered phase comparison
-- Data used for Figure 3
+Depending on the settings inside the script, typical outputs include:
 
----
-
-## Parameters
-
-Typical inputs include:
-
-- \( k_F \)
-- \( m^* \)
-- \( \lambda \)
-- \( r \) (distance from QCP)
-- UV frequency cutoff \( \sim E_F \)
-
-Convergence with respect to Matsubara and momentum cutoffs must be checked.
+- $T_{c,t}(r)$ and $T_{c,b}(r)$ (layer-resolved critical temperatures)
+- $\Delta T_c(r)$ and/or $\Delta T_c/T_c$
+- Plots/data used to generate the ordered-phase splitting features in **Figure 3**
 
 ---
 
 ## Usage
 
-Run in MATLAB:
+Run directly in MATLAB from the folder containing the script:
 
 ```matlab
 check_splitting
