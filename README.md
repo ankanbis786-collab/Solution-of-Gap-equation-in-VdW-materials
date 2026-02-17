@@ -14,7 +14,7 @@ The paper develops a theory of superconductivity mediated by interlayer ferroele
 
 ## Description
 
-`check_splitting.m` numerically solves the **linearized Eliashberg equation in the ordered ferroelectric (FE) phase**, implementing **Eq. (B23)** (Appendix B) of the paper.
+``check_splitting.m" numerically solves the linearized Eliashberg equation in the ordered ferroelectric (FE) phase ( Eq. (B23) in Appendix B)
 
 The script computes the **layer-resolved superconducting transition temperatures** $T_{c,t}$ and $T_{c,b}$, and extracts the FE-induced splitting
 
